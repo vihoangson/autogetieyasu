@@ -1,6 +1,12 @@
 <?php
 require_once('vendor/autoload.php');
+
+use KubAT\PhpSimple\HtmlDomParser;
+
 define("DOMAIN_URL","https://f.ieyasu.co");
+define("NAME_SITE","nha-jp");
+//define("NAME_SITE","lampart1");
+
 
 class ClassGetContent{
 	public $cookie;
@@ -45,23 +51,27 @@ class ClassGetContent{
 
 	public function loginKintai () {        
 		$html = $this->curlWithPost(DOMAIN_URL."/users/sign_out", array(), $this->cookie);
-		$html = $this->curlWithPost(DOMAIN_URL."/lampart1/login/", array(), $this->cookie);
-		$dom = \Sunra\PhpSimple\HtmlDomParser::str_get_html($html);
+		$html = $this->curlWithPost(DOMAIN_URL."/".NAME_SITE."/login/", array(), $this->cookie);
+		$dom = HtmlDomParser::str_get_html($html);
 		$inputs = $dom->find("#new_user input");
 		if ($inputs) {
 			$posts = array();
 			foreach ($inputs as $input) {
 				$posts[$input->getAttribute('name')] = $input->getAttribute('value');
 			}
-			$posts['user[login_id]'] = 'LP0072';
-			$posts['user[password]'] = 'LP0072';
-			$html = $this->curlWithPost(DOMAIN_URL."/lampart1/login/", $posts, $this->cookie);                                    
-			
-			$html2 = $this->curlWithPost(DOMAIN_URL."/approvals", array(), $this->cookie);          
-			
-		}
+			$posts['user[login_id]'] = 'Nha-jp3';
+			$posts['user[password]'] = 'nha_123';
+			$html = $this->curlWithPost(DOMAIN_URL."/".NAME_SITE."/login/", $posts, $this->cookie);
+			//$html2 = $this->curlWithPost(DOMAIN_URL."/approvals", array(), $this->cookie);
+			//$html2 = $this->curlWithPost(DOMAIN_URL."/stamping?sid=1&lat=10.7610326&lng=106.6212673&position_disabled=0&_=1561175906642", array(), $this->cookie);          
+			//$html2 = $this->curlWithPost(DOMAIN_URL."/stamping?sid=2&lat=10.7610326&lng=106.6212673&position_disabled=0&_=1561175906642", array(), $this->cookie);          
+			//$html2 = $this->curlWithPost(DOMAIN_URL."/stamping?sid=7&position_disabled=0&_=1561175906642", array(), $this->cookie);
+			//$html2 = $this->curlWithPost(DOMAIN_URL."/stamping?sid=8&position_disabled=0&_=1561175906642", array(), $this->cookie);
 
-		return $html2;
+			return $html2;
+		}else{
+			return $html;
+		}		
 	}
 
 
@@ -72,7 +82,7 @@ class ClassGetContent{
 
 	public function getIeyasuInfoList ($html, $ieyasuInfos = array()) {
 		
-		$dom = \Sunra\PhpSimple\HtmlDomParser::str_get_html($html);        
+		$dom = HtmlDomParser::str_get_html($html);        
 		
 		if ($trs = $dom->find(".tableApproval > tr")) {
 			foreach ($trs as $index => $tr) {
@@ -112,7 +122,7 @@ class ClassGetContent{
 		$redmineTime = array();
 		if (is_array($htmls) && $htmls) {
 			foreach ($htmls as $id => $html) {
-				$dom = \Sunra\PhpSimple\HtmlDomParser::str_get_html($html);
+				$dom = HtmlDomParser::str_get_html($html);
 				$hours = explode(":", trim($dom->find('#areaTotal .block01 table tr', 1)->find('td', 0)->plaintext));
 				
 				if (count($hours) > 1) {
@@ -139,19 +149,22 @@ class ClassGetContent{
 
 $c = new ClassGetContent;
 $c->cookie = __DIR__.'/cookie_kintai.txt';
-//$mmm = $c->loginKintai();
-$mmm = file_get_contents("1561013420.html");
+$mmm = $c->loginKintai();
+file_put_contents('tmp/'.time().".html", $mmm);
+die;
 
+
+$mmm = file_get_contents("1561013420.html");
 $kk = $c->getIeyasuInfoList($mmm);
 foreach ($kk as $key => $value) {
 	$dd =  $c->curlWithPost($value['href'],[],$c->cookie);
 	$m123 = $c->getIeyasuTime([$dd]);
 	var_dump($m123);
 	die;	
-}
+}	
 var_dump($kk);
 die;
 //file_put_contents(time().".html", $mmm);
 
-//var_dump($c->curlWithPost(DOMAIN_URL.'/lampart1',[],'./cookie.txt'));
+//var_dump($c->curlWithPost(DOMAIN_URL.'/".NAME_SITE."',[],'./cookie.txt'));
 ?>
